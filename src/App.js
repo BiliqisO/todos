@@ -1,147 +1,92 @@
 import { useEffect } from "react";
+import { useTodoContext } from "./TodoContext";
+
 import "./App.css";
-import { useState } from "react";
 
 function App() {
-    const [todos, setTodos] = useState([]);
-    const [editId, setEditId] = useState(null);
+  const {
+    todos,
+    editId,
+    newTodo,
+    setNewTodo,
+    handleCheck,
+    handleDelete,
+    handleEdit,
+    handleCreateTodo,
+    setEditId,
+  } = useTodoContext();
+  useEffect(() => {
+    let canceled = false;
+    fetch("https://jsonplaceholder.typicode.com/todos")
+      .then((res) => res.json())
+      .then((data) => {
+        if (!canceled) {
+          setTodos(data.slice(0, 10));
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+      });
 
-    useEffect(() => {
-        let canceled = false;
-        fetch("https://jsonplaceholder.typicode.com/todos")
-            .then((res) => res.json())
-            .then((data) => {
-                if (!canceled) {
-                    setTodos(data.slice(0, 10));
-                }
-            })
-            .catch((err) => {
-                console.error(err);
-            });
+    return () => (canceled = true);
+  }, []);
 
-        return () => (canceled = true);
-    }, []);
-
-    const handleCheck = (id) => {
-        // const targetTodo = todos.find((todo) => todo.id === id);
-
-        // const targetTodoIndex = todos.findIndex((todo) => todo.id === id);
-
-        // if (!targetTodo || targetTodoIndex === -1) return;
-
-        // targetTodo.completed = !targetTodo.completed;
-
-        // const newTodos = [...todos];
-
-        // newTodos[targetTodoIndex] = targetTodo;
-
-        // setTodos(newTodos);
-
-        const newTodos = todos.map((todo) =>
-            todo.id === id ? { ...todo, completed: !todo.completed } : todo
-        );
-        setTodos(newTodos);
-    };
-
-    const handleDelete = (id) => {
-        // const newArray = todos.filter((todo) => todo.id !== id);
-        // setTodos(newArray);
-
-        const targetTodoIndex = todos.findIndex((todo) => todo.id === id);
-
-        const newTodos = [...todos];
-        newTodos.splice(targetTodoIndex, 1);
-        setTodos(newTodos);
-    };
-
-    const handleEdit = (e) => {
-        // const targetTodo = todos.find((todo) => todo.id === editId);
-
-        // const targetTodoIndex = todos.findIndex((todo) => todo.id === editId);
-
-        // if (!targetTodo || targetTodoIndex === -1) return;
-
-        // targetTodo.title = e.target.value;
-
-        // const newTodos = [...todos];
-
-        // newTodos[targetTodoIndex] = targetTodo;
-
-        // setTodos(newTodos);
-
-        const newTodos = todos.map((todo) =>
-            todo.id === editId ? { ...todo, title: e.target.value } : todo
-        );
-        setTodos(newTodos);
-    };
-
-    const x = [
-        {
-            userId: 5,
-            id: 23,
-            title: "incidunt ut saepe autem",
-            completed: true,
-        },
-        {
-            userId: 5,
-            id: 87,
-            title: "laudantium quae eligendi consequatur quia et vero autem",
-            completed: false,
-        },
-    ];
-
-    return (
-        <div className="App">
-            <div className="todo-wrapper">
-                <ul>
-                    {!!todos.length &&
-                        todos.map((todo) => (
-                            <li className="todo" key={todo.id}>
-                                <input
-                                    type="checkbox"
-                                    checked={todo.completed}
-                                    onChange={() => handleCheck(todo.id)}
-                                />
-                                {editId === todo.id ? (
-                                    <input
-                                        type="text"
-                                        value={todo.title}
-                                        onChange={handleEdit}
-                                    />
-                                ) : (
-                                    <span
-                                        className={`todo-title ${
-                                            todo.completed && "checked"
-                                        }`}
-                                    >
-                                        {todo.title}
-                                    </span>
-                                )}
-                                {editId === todo.id ? (
-                                    <button onClick={() => setEditId(null)}>
-                                        ✅
-                                    </button>
-                                ) : (
-                                    <button
-                                        className="del-button"
-                                        onClick={() => setEditId(todo.id)}
-                                        disabled={todo.completed}
-                                    >
-                                        ✏️
-                                    </button>
-                                )}
-                                <button
-                                    className="del-button"
-                                    onClick={() => handleDelete(todo.id)}
-                                >
-                                    🗑️
-                                </button>
-                            </li>
-                        ))}
-                </ul>
-            </div>
-        </div>
-    );
+  return (
+    <div className="App">
+      <div className="todo-wrapper">
+        <input
+          type="text"
+          placeholder="Add a new todo"
+          value={newTodo}
+          onChange={(e) => setNewTodo(e.target.value)}
+        />
+        <button onClick={handleCreateTodo}>Add</button>
+        <ul>
+          {!!todos.length &&
+            todos.map((todo) => (
+              <li
+                className="todo"
+                key={todo.id}
+              >
+                <input
+                  type="checkbox"
+                  checked={todo.completed}
+                  onChange={() => handleCheck(todo.id)}
+                />
+                {editId === todo.id ? (
+                  <input
+                    type="text"
+                    value={todo.title}
+                    onChange={handleEdit}
+                  />
+                ) : (
+                  <span className={`todo-title ${todo.completed && "checked"}`}>
+                    {todo.title}
+                  </span>
+                )}
+                {editId === todo.id ? (
+                  <button onClick={() => setEditId(null)}>✅</button>
+                ) : (
+                  <button
+                    className="del-button"
+                    onClick={() => setEditId(todo.id)}
+                    disabled={todo.completed}
+                  >
+                    ✏️
+                  </button>
+                )}
+                <button
+                  className="del-button"
+                  onClick={() => handleDelete(todo.id)}
+                >
+                  🗑️
+                </button>
+              </li>
+            ))}
+        </ul>
+      </div>
+    </div>
+  );
 }
 
 export default App;
